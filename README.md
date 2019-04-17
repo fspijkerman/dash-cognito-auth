@@ -7,7 +7,7 @@ This Library uses [Flask Dance](https://github.com/singingwolfboy/flask-dance)
 and a modified version of Plotly's own [dash auth](https://github.com/plotly/dash-auth)
 for authentication.
 
-This Library is heavly inspired by [dash-google-oauth](https://github.com/lchapo/dash-google-auth) created by Lucas Chapin
+This Library is heavily inspired by [dash-google-oauth](https://github.com/lchapo/dash-google-auth) created by Lucas Chapin
 
 ## Basic Use
 
