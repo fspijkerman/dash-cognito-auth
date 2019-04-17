@@ -1,3 +1,4 @@
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, TokenExpiredError, OAuth2Error
 from flask import (
     redirect,
     url_for,
@@ -31,11 +32,14 @@ class CognitoOAuth(Auth):
             # send to cognito login
             return False
 
-        resp = cognito.get("/oauth2/userInfo")
-        assert resp.ok, resp.text
+        try:
+            resp = cognito.get("/oauth2/userInfo")
+            assert resp.ok, resp.text
 
-        session['email'] = resp.json().get('email')
-        return True
+            session['email'] = resp.json().get('email')
+            return True
+        except (InvalidGrantError, TokenExpiredError):
+            return self.login_request()
 
     def login_request(self):
         # send to cognito auth page
