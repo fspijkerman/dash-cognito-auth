@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 from setuptools import setup
 
@@ -7,7 +7,7 @@ setup(
     description="Dash Cognito Auth",
     long_description=open('README.md', 'rt').read().strip(),
     long_description_content_type='test/markdown',
-    author="Frank Spijkerman", author_email='fspijkerman@schubergphilis.com',
+    author="Frank Spijkerman", author_email='fspijkerman@gmail.com',
     url="https://github.com/fspijkerman/dash-cognito-auth",
     license='MIT',
     package='dash_cognito_auth',
