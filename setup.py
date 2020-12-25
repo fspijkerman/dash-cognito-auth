@@ -6,7 +6,7 @@ setup(
     name="dash-cognito-auth",
     description="Dash Cognito Auth",
     long_description=open('README.md', 'rt').read().strip(),
-    long_description_content_type='test/markdown',
+    long_description_content_type='text/markdown',
     author="Frank Spijkerman", author_email='fspijkerman@gmail.com',
     url="https://github.com/fspijkerman/dash-cognito-auth",
     license='MIT',
