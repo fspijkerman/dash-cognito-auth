@@ -25,7 +25,7 @@ server.config.update({
   'COGNITO_OAUTH_CLIENT_SECRET': ...,
 })
 
-app = Dash(__name__, server=server, url_base_pathname='/', auth='auth')
+app = Dash(__name__, server=server, url_base_pathname='/')
 
 additional_scopes = [...]
 auth = CognitoOAuth(app, domain='mydomain', region='eu-west-1', authorized_emails, additional_scopes)

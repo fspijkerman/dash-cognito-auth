@@ -19,7 +19,6 @@ app = Dash(
     __name__,
     server=server,
     url_base_pathname='/',
-    auth='auth',
 )
 app.config['suppress_callback_exceptions']=True
 

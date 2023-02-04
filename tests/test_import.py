@@ -15,7 +15,7 @@ def app(name='dask'):
     """Dash App."""
 
     return Dash(name, server=Flask(name),
-                url_base_pathname='/', auth='auth')
+                url_base_pathname='/')
 
 
 def test_init(app):
