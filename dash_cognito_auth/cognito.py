@@ -2,7 +2,8 @@ from __future__ import unicode_literals
 
 from flask_dance.consumer import OAuth2ConsumerBlueprint
 from functools import partial
-from flask.globals import LocalProxy, _lookup_app_object
+from flask.globals import LocalProxy
+from flask import g
 
 try:
     from flask import _app_ctx_stack as stack
@@ -80,10 +81,9 @@ def make_cognito_blueprint(
 
     @cognito_bp.before_app_request
     def set_applocal_session():
-        ctx = stack.top
-        ctx.cognito_oauth = cognito_bp.session
+        g.cognito_oauth = cognito_bp.session
 
     return cognito_bp
 
 
-cognito = LocalProxy(partial(_lookup_app_object, "cognito_oauth"))
+cognito = LocalProxy(lambda: g.cognito_oauth)
