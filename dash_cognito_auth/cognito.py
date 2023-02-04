@@ -1,29 +1,24 @@
 from __future__ import unicode_literals
 
 from flask_dance.consumer import OAuth2ConsumerBlueprint
-from functools import partial
-from flask.globals import LocalProxy, _lookup_app_object
-
-try:
-    from flask import _app_ctx_stack as stack
-except ImportError:
-    from flask import _request_ctx_stack as stack
-
+from flask.globals import LocalProxy
+from flask import g
 
 __maintainer__ = "Frank Spijkerman <fspijkerman@schubergphilis.com>"
 
+
 def make_cognito_blueprint(
-    client_id=None,
-    client_secret=None,
-    scope=None,
-    redirect_url=None,
-    redirect_to=None,
-    login_url=None,
-    authorized_url=None,
-    session_class=None,
-    storage=None,
-    domain=None,
-    region="eu-west-1",
+        client_id=None,
+        client_secret=None,
+        scope=None,
+        redirect_url=None,
+        redirect_to=None,
+        login_url=None,
+        authorized_url=None,
+        session_class=None,
+        storage=None,
+        domain=None,
+        region="eu-west-1",
 ):
     """
     Make a blueprint for authenticating with Cognito using OAuth 2. This requires
@@ -80,10 +75,9 @@ def make_cognito_blueprint(
 
     @cognito_bp.before_app_request
     def set_applocal_session():
-        ctx = stack.top
-        ctx.cognito_oauth = cognito_bp.session
+        g.cognito_oauth = cognito_bp.session
 
     return cognito_bp
 
 
-cognito = LocalProxy(partial(_lookup_app_object, "cognito_oauth"))
+cognito = LocalProxy(lambda: g.cognito_oauth)
