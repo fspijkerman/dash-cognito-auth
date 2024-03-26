@@ -1,6 +1,1 @@
-dash>=0.41.0
-dash-core-components>=0.46.0
-dash-html-components>=0.15.0
-Flask>=1.0.2
-Flask-Dance>=1.2.0
-six
+-e .
