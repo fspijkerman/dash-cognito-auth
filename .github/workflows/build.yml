@@ -15,6 +15,14 @@ jobs:
   cross_platform_tests:
     runs-on: ${{ matrix.os }}
     environment: end-2-end-tests
+    env:
+      COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
+      COGNITO_EMAIL: ${{ secrets.COGNITO_EMAIL }}
+      COGNITO_OAUTH_CLIENT_ID: ${{ secrets.COGNITO_OAUTH_CLIENT_ID }}
+      COGNITO_OAUTH_CLIENT_SECRET: ${{ secrets.COGNITO_OAUTH_CLIENT_SECRET }}
+      COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
+      COGNITO_REGION: ${{ secrets.COGNITO_REGION }}
+      COGNITO_USER_NAME: ${{ secrets.COGNITO_USER_NAME }}
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
