@@ -25,7 +25,7 @@ server.config.update({
   'COGNITO_OAUTH_CLIENT_SECRET': ...,
 })
 
-app = Dash(__name__, server=server, url_base_pathname='/', auth='auth')
+app = Dash(__name__, server=server, url_base_pathname='/')
 
 additional_scopes = [...]
 auth = CognitoOAuth(app, domain='mydomain', region='eu-west-1', authorized_emails, additional_scopes)
@@ -62,3 +62,9 @@ Steps to try this out yourself:
    prompting a Cognito login, that means you're already authenticated -- try
    using an incognito window in this case if you want to see the login
    experience for a new user.
+
+## Development
+
+- Check out the repository
+- Run `pip install -e .`
+- Run `python setup.py test` to check if the tests run locally
