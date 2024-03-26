@@ -25,7 +25,7 @@ server.config.update({
   'COGNITO_OAUTH_CLIENT_SECRET': ...,
 })
 
-app = Dash(__name__, server=server, url_base_pathname='/', auth='auth')
+app = Dash(__name__, server=server, url_base_pathname='/')
 
 additional_scopes = [...]
 auth = CognitoOAuth(app, domain='mydomain', region='eu-west-1', authorized_emails, additional_scopes)
@@ -62,3 +62,34 @@ Steps to try this out yourself:
    prompting a Cognito login, that means you're already authenticated -- try
    using an incognito window in this case if you want to see the login
    experience for a new user.
+
+## Development
+
+- Check out the repository
+- Run `pip install -r requirements.txt` to install the package
+- Run `pip install -r requirements-dev.txt` to install additional dependencies for running the tests
+- Run the tests locally
+   - Use `python -m pytest tests --ignore-glob "*end_to_end*"` to exclude the integration / end to end tests that require a [Cognito Setup](#integration-tests)
+   - Use `python -m pytest tests` to run all tests
+
+
+## Integration Tests
+
+There are integration tests against a Cognito User Pool + App Client, if you want to run those - either create a `.env` file with this content or set the environment variables with the same name.
+
+```shell
+# Credentials for the user in the user pool
+COGNITO_USER_NAME=<username>
+COGNITO_EMAIL=<email-that-must-match>
+COGNITO_PASSWORD=<password>
+
+# Connection between the app and the user pool
+COGNITO_DOMAIN=<just-the-prefix>
+COGNITO_REGION=<aws-region-of-the-cognito-userpool>
+COGNITO_OAUTH_CLIENT_ID=<app-client-id>
+COGNITO_OAUTH_CLIENT_SECRET=<app-client-secret>
+```
+
+## Known Limitations
+
+- Fully Custom Cognito Domains aren't supported at the moment

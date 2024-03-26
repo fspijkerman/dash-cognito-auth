@@ -1,0 +1,58 @@
+name: Dash-Cognito-Auth
+
+on:
+  push:
+    branches: ["*"]
+  # pull_request:
+  #   branches: [master]
+
+  # Trigger on release, this will cause the upload to Pypi
+  release:
+    types:
+      - created
+
+jobs:
+  cross_platform_tests:
+    runs-on: ${{ matrix.os }}
+    environment: end-2-end-tests
+    env:
+      COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
+      COGNITO_EMAIL: ${{ secrets.COGNITO_EMAIL }}
+      COGNITO_OAUTH_CLIENT_ID: ${{ secrets.COGNITO_OAUTH_CLIENT_ID }}
+      COGNITO_OAUTH_CLIENT_SECRET: ${{ secrets.COGNITO_OAUTH_CLIENT_SECRET }}
+      COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
+      COGNITO_REGION: ${{ secrets.COGNITO_REGION }}
+      COGNITO_USER_NAME: ${{ secrets.COGNITO_USER_NAME }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        pythonVersion: ["3.10", "3.11", "3.12"]
+
+        # MacOS / Windows Runners consume more minutes, we restrict
+        # those to the minimum supported Python version
+        exclude:
+          - os: macos-latest
+            pythonVersion: 3.11
+          - os: macos-latest
+            pythonVersion: 3.12
+          - os: windows-latest
+            pythonVersion: 3.11
+          - os: windows-latest
+            pythonVersion: 3.12
+
+      fail-fast: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.pythonVersion }}
+
+      - name: Install dev dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run Tests
+        run: python -m pytest tests
