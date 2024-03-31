@@ -1,19 +1,20 @@
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, TokenExpiredError, OAuth2Error
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, TokenExpiredError
 from flask import (
     redirect,
     url_for,
     Response,
-    abort,
     session,
 )
-from .cognito import (
-  make_cognito_blueprint,
-  cognito
-)
+from .cognito import make_cognito_blueprint, cognito
 
 from .auth import Auth
 
+
 class CognitoOAuth(Auth):
+    """
+    Wraps a Dash App and adds Cognito based OAuth2 authentication.
+    """
+
     def __init__(self, app, domain, region, additional_scopes=None):
         super(CognitoOAuth, self).__init__(app)
         cognito_bp = make_cognito_blueprint(
@@ -23,7 +24,8 @@ class CognitoOAuth(Auth):
                 "openid",
                 "email",
                 "profile",
-            ] + (additional_scopes if additional_scopes else [])
+            ]
+            + (additional_scopes if additional_scopes else []),
         )
         app.server.register_blueprint(cognito_bp, url_prefix="/login")
 
@@ -36,7 +38,7 @@ class CognitoOAuth(Auth):
             resp = cognito.get("/oauth2/userInfo")
             assert resp.ok, resp.text
 
-            session['email'] = resp.json().get('email')
+            session["email"] = resp.json().get("email")
             return True
         except (InvalidGrantError, TokenExpiredError):
             return self.login_request()
@@ -52,6 +54,7 @@ class CognitoOAuth(Auth):
 
             response = f(*args, **kwargs)
             return response
+
         return wrap
 
     def index_auth_wrapper(self, original_index):
@@ -60,4 +63,5 @@ class CognitoOAuth(Auth):
                 return original_index(*args, **kwargs)
             else:
                 return self.login_request()
+
         return wrap

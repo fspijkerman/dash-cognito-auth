@@ -1,16 +1,12 @@
 from __future__ import unicode_literals
 
 from flask_dance.consumer import OAuth2ConsumerBlueprint
-from functools import partial
-from flask.globals import LocalProxy, _lookup_app_object
-
-try:
-    from flask import _app_ctx_stack as stack
-except ImportError:
-    from flask import _request_ctx_stack as stack
+from flask.globals import LocalProxy
+from flask import g
 
 
 __maintainer__ = "Frank Spijkerman <fspijkerman@schubergphilis.com>"
+
 
 def make_cognito_blueprint(
     client_id=None,
@@ -65,9 +61,9 @@ def make_cognito_blueprint(
         client_id=client_id,
         client_secret=client_secret,
         scope=scope,
-        base_url=f'https://{domain}.auth.{region}.amazoncognito.com',
-        authorization_url=f'https://{domain}.auth.{region}.amazoncognito.com/oauth2/authorize',
-        token_url=f'https://{domain}.auth.{region}.amazoncognito.com/oauth2/token',
+        base_url=f"https://{domain}.auth.{region}.amazoncognito.com",
+        authorization_url=f"https://{domain}.auth.{region}.amazoncognito.com/oauth2/authorize",
+        token_url=f"https://{domain}.auth.{region}.amazoncognito.com/oauth2/token",
         redirect_url=redirect_url,
         redirect_to=redirect_to,
         login_url=login_url,
@@ -80,10 +76,9 @@ def make_cognito_blueprint(
 
     @cognito_bp.before_app_request
     def set_applocal_session():
-        ctx = stack.top
-        ctx.cognito_oauth = cognito_bp.session
+        g.cognito_oauth = cognito_bp.session
 
     return cognito_bp
 
 
-cognito = LocalProxy(partial(_lookup_app_object, "cognito_oauth"))
+cognito = LocalProxy(lambda: g.cognito_oauth)

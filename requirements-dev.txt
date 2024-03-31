@@ -1,0 +1,4 @@
+pytest
+requests
+beautifulsoup4
+python-dotenv
