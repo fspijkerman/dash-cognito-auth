@@ -5,7 +5,7 @@ from flask.globals import LocalProxy
 from flask import g
 
 
-__maintainer__ = "Frank Spijkerman <fspijkerman@schubergphilis.com>"
+__maintainer__ = "Frank Spijkerman <frank@jeito.nl>"
 
 
 def make_cognito_blueprint(
