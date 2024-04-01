@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name="dash-cognito-auth",
     description="Dash Cognito Auth",
-    long_description=open("README.md", "rt").read().strip(),
+    long_description=open("README.md", "rt", encoding="utf-8").read().strip(),
     long_description_content_type="text/markdown",
     author="Frank Spijkerman",
     author_email="frank@jeito.nl",

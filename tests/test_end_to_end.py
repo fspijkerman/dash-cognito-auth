@@ -4,6 +4,8 @@ Integration test that authenticates against a real user pool.
 Naturally these are a bit sensitive to the way the Cognito UI is implemented.
 """
 
+# pylint: disable=W0621
+
 import os
 
 from http import HTTPStatus

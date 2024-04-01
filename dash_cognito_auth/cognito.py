@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from flask_dance.consumer import OAuth2ConsumerBlueprint
 from flask.globals import LocalProxy
 from flask import g
@@ -19,7 +17,7 @@ def make_cognito_blueprint(
     session_class=None,
     storage=None,
     domain=None,
-    region="eu-west-1",
+    region=None,
 ):
     """
     Make a blueprint for authenticating with Cognito using OAuth 2. This requires
@@ -49,11 +47,23 @@ def make_cognito_blueprint(
                 :class:`~flask_dance.consumer.storage.session.SessionStorage`.
         domain (str): The domain configured in Cognito
         region (str): The region of AWS
-            Defaults to ``eu-west-1``.
 
     :rtype: :class:`~flask_dance.consumer.OAuth2ConsumerBlueprint`
     :returns: A :ref:`blueprint <flask:blueprints>` to attach to your Flask app.
     """
+
+    # There are more sophisticated checks, but for our purposes it should
+    # strike a balance between accuracy and readability. The value of domain
+    # is either just a prefix in Cognito or a FQDN.
+    custom_domain = "." in domain
+
+    if not custom_domain and region is None:
+        raise ValueError("The region parameter must be set if 'domain' is not a FQDN.")
+
+    hostname = (
+        f"{domain}.auth.{region}.amazoncognito.com" if region is not None else domain
+    )
+
     scope = scope or ["openid", "email", "phone", "profile"]
     cognito_bp = OAuth2ConsumerBlueprint(
         "cognito",
@@ -61,9 +71,9 @@ def make_cognito_blueprint(
         client_id=client_id,
         client_secret=client_secret,
         scope=scope,
-        base_url=f"https://{domain}.auth.{region}.amazoncognito.com",
-        authorization_url=f"https://{domain}.auth.{region}.amazoncognito.com/oauth2/authorize",
-        token_url=f"https://{domain}.auth.{region}.amazoncognito.com/oauth2/token",
+        base_url=f"https://{hostname}",
+        authorization_url=f"https://{hostname}/oauth2/authorize",
+        token_url=f"https://{hostname}/oauth2/token",
         redirect_url=redirect_url,
         redirect_to=redirect_to,
         login_url=login_url,
