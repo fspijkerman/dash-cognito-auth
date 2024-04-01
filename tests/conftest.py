@@ -3,6 +3,7 @@ Shared test fixtures.
 """
 
 # pylint: disable=W0621
+from typing import Iterator
 from unittest.mock import patch
 
 import pytest
@@ -91,7 +92,23 @@ def prefixed_app_with_auth(app_with_url_prefix) -> CognitoOAuth:
 
 
 @pytest.fixture
-def authorized_app(app) -> CognitoOAuth:
+def app_with_auth_and_cognito_custom_domain(app) -> CognitoOAuth:
+    """
+    Dash App wrapped with Cognito Authentication
+    - Domain name authentication.example.com
+    - App Client Id: testclient
+    - App Client Secret: testsecret
+    """
+
+    auth = CognitoOAuth(app, domain="authentication.example.com")
+    auth.app.server.config["COGNITO_OAUTH_CLIENT_ID"] = "testclient"
+    auth.app.server.config["COGNITO_OAUTH_CLIENT_SCRET"] = "testsecret"
+
+    return auth
+
+
+@pytest.fixture
+def authorized_app(app) -> Iterator[CognitoOAuth]:
     """
     App with Cognito Based authentication that bypasses the authentication/authorization
     part, i.e. replaced is_authorized and the authorized endpoint.

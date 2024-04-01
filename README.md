@@ -89,7 +89,3 @@ COGNITO_REGION=<aws-region-of-the-cognito-userpool>
 COGNITO_OAUTH_CLIENT_ID=<app-client-id>
 COGNITO_OAUTH_CLIENT_SECRET=<app-client-secret>
 ```
-
-## Known Limitations
-
-- Fully Custom Cognito Domains aren't supported at the moment

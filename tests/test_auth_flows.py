@@ -118,5 +118,42 @@ def test_that_cognito_authorized_response_is_accepted(authorized_app: CognitoOAu
     ), "Should redirect to root after authorization"
 
 
-# Test Cognito Response parsing
-# TODO: Test Logout
+def test_that_cognito_handler_redirects_to_user_pool_with_custom_domain(
+    app_with_auth_and_cognito_custom_domain: CognitoOAuth,
+):
+    """
+    If we're not logged in, the Cognito handler should redirect the request to the
+    Cognito User pool so the client can login an retrieve a JWT.
+
+    We test that all the required scopes etc. are present in the redirect uri
+    and it's formed according to the expected pattern.
+    In this scenario, we additionally ensure that a custom domain works, in our case
+    it should be authentication.example.com
+    """
+
+    # Arrange
+    flask_server: Flask = app_with_auth_and_cognito_custom_domain.app.server
+    client = flask_server.test_client()
+
+    # Act
+    response = client.get("/login/cognito")
+
+    # Assert
+    assert response.status_code == HTTPStatus.FOUND, "We expect a redirect"
+
+    redirect_url = response.headers.get("Location")
+    parsed = urlparse(redirect_url)
+
+    assert parsed.scheme == "https"
+    assert parsed.hostname == "authentication.example.com"  # Custom Domain Name
+    assert parsed.path == "/oauth2/authorize"
+
+    parsed_qs = parse_qs(parsed.query, strict_parsing=True)
+    assert "openid" in parsed_qs["scope"][0]
+    assert "email" in parsed_qs["scope"][0]
+    assert "profile" in parsed_qs["scope"][0]
+
+    assert parsed_qs["response_type"][0] == "code"
+    assert parsed_qs["redirect_uri"][0] == "http://localhost/login/cognito/authorized"
+    assert parsed_qs["client_id"][0] == "testclient"
+    assert "state" in parsed_qs
