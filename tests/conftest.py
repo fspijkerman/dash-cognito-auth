@@ -1,3 +1,8 @@
+"""
+Shared test fixtures.
+"""
+
+# pylint: disable=W0621
 from unittest.mock import patch
 
 import pytest
@@ -38,6 +43,45 @@ def app_with_auth(app) -> CognitoOAuth:
     - App Client Id: testclient
     - App Client Secret: testsecret
     """
+
+    auth = CognitoOAuth(app, domain="test", region="eu-central-1")
+    auth.app.server.config["COGNITO_OAUTH_CLIENT_ID"] = "testclient"
+    auth.app.server.config["COGNITO_OAUTH_CLIENT_SCRET"] = "testsecret"
+
+    return auth
+
+
+@pytest.fixture
+def app_with_url_prefix(name="dash") -> Dash:
+    """
+    Dash App that has only one H1 Tag with the value "Hello World".
+    It uses a Flask server with the secret key just_a_test.
+
+    All URLs should be prefixed with /some/prefix/
+    """
+
+    dash_app = Dash(name, server=Flask(name), url_base_pathname="/some/prefix/")
+    dash_app.layout = html.H1("Hello World")
+    dash_app.server.config.update(
+        {
+            "TESTING": True,
+        }
+    )
+    dash_app.server.secret_key = "just_a_test"
+    return dash_app
+
+
+@pytest.fixture
+def prefixed_app_with_auth(app_with_url_prefix) -> CognitoOAuth:
+    """
+    Dash App wrapped with Cognito Authentication:
+    - Domain name: test
+    - Region: eu-central-1
+    - App Client Id: testclient
+    - App Client Secret: testsecret
+    """
+
+    app = app_with_url_prefix
 
     auth = CognitoOAuth(app, domain="test", region="eu-central-1")
     auth.app.server.config["COGNITO_OAUTH_CLIENT_ID"] = "testclient"

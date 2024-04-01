@@ -1,4 +1,5 @@
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, TokenExpiredError
+from dash import Dash
 from flask import (
     redirect,
     url_for,
@@ -15,7 +16,7 @@ class CognitoOAuth(Auth):
     Wraps a Dash App and adds Cognito based OAuth2 authentication.
     """
 
-    def __init__(self, app, domain, region, additional_scopes=None):
+    def __init__(self, app: Dash, domain, region, additional_scopes=None):
         super(CognitoOAuth, self).__init__(app)
         cognito_bp = make_cognito_blueprint(
             domain=domain,
@@ -27,7 +28,10 @@ class CognitoOAuth(Auth):
             ]
             + (additional_scopes if additional_scopes else []),
         )
-        app.server.register_blueprint(cognito_bp, url_prefix="/login")
+
+        dash_base_path = app.get_relative_path("")
+
+        app.server.register_blueprint(cognito_bp, url_prefix=f"{dash_base_path}/login")
 
     def is_authorized(self):
         if not cognito.authorized:

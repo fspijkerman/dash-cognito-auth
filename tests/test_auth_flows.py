@@ -31,6 +31,26 @@ def test_that_a_redirect_to_cognito_handler_happens_if_not_logged_in(
     assert response.headers.get("Location") == "/login/cognito"
 
 
+def test_that_a_redirect_to_cognito_handler_happens_if_not_logged_in_with_url_prefix(
+    prefixed_app_with_auth: CognitoOAuth,
+):
+    """
+    If we're not logged in, an unauthenticated request should result in a redirect
+    to the local cognito endpoint. This should respect any url_base_pathname settings.
+    """
+
+    # Arrange
+    flask_server: Flask = prefixed_app_with_auth.app.server
+    client = flask_server.test_client()
+
+    # Act
+    response = client.get("/some/prefix/")
+
+    # Assert
+    assert response.status_code == HTTPStatus.FOUND
+    assert response.headers.get("Location") == "/some/prefix/login/cognito"
+
+
 def test_that_cognito_handler_redirects_to_user_pool_if_not_authenticated(
     app_with_auth: CognitoOAuth,
 ):
