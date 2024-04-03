@@ -1,5 +1,7 @@
 # Dash Cognito Auth
 
+![Build + Test](https://github.com/fspijkerman/dash-cognito-auth/actions/workflows/build.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/dash-cognito-auth.svg)](https://pypi.org/project/dash-cognito-auth/)
+
 Dash Cognito Auth is a simple library using Cognito OAuth to authenticate and
 view a [Dash](https://dash.plot.ly/) app.
 
@@ -25,49 +27,31 @@ server.config.update({
   'COGNITO_OAUTH_CLIENT_SECRET': ...,
 })
 
-app = Dash(__name__, server=server, url_base_pathname='/')
+app = Dash(__name__, server=server, url_base_pathname="/")
 
 additional_scopes = [...]
-auth = CognitoOAuth(app, domain='mydomain', region='eu-west-1', authorized_emails, additional_scopes)
+auth = CognitoOAuth(
+   app,
+   domain='mydomain',
+   region='eu-west-1',
+   additional_scopes,
+   logout_url="/logout"
+)
 
 # your Dash app here :)
 ...
 ```
 
 ## Example
-Steps to try this out yourself:
 
-1. Install the `dash-cognito-auth` library using `pip`:
-
-    ```bash
-    $ pip install dash-cognito-auth
-    ```
-
-2. Follow the [Flask Dance Guide](http://flask-dance.readthedocs.io/en/latest/quickstarts/cognito.html)
-   to create an app on the cognito admin console
-
-3. Make a copy of [app.py](https://github.com/lucaschapin/dash-cognito-auth/blob/master/app.py)
-   and set the variables (or set the corresponding environment variables):
-    ```python
-    server.config["COGNITO_OAUTH_CLIENT_ID"] = ...
-    server.config["COGNITO_OAUTH_CLIENT_SECRET"] = ...
-    ```
-   with values from the Cognito OAuth 2 client you should have set up in step 1.
-   If you've set these up properly, you can find them at
-   [APIs & Services > Credentials](https://console.developers.cognito.com/apis/credentials)
-   under the section **OAuth 2.0 client IDs**.
-
-4. Run `python app.py` and open [localhost](http://localhost:8050/) in a
-   browser window to try it out! If the app loads automatically without
-   prompting a Cognito login, that means you're already authenticated -- try
-   using an incognito window in this case if you want to see the login
-   experience for a new user.
+This repository contains a simple [Example App](example/) that demonstrates how to add Cognito authentication to your Dash app as well as the Login and Logout Flows.
 
 ## Development
 
 - Check out the repository
 - Run `pip install -r requirements.txt` to install the package
 - Run `pip install -r requirements-dev.txt` to install additional dependencies for running the tests
+- If you want to run the [Sample App](example/) or the end to end tests, it makes sense to deploy the [Cloudformation Template](example/aws_resources.yaml) in order to get a functioning User Pool + App Client
 - Run the tests locally
    - Use `python -m pytest tests --ignore-glob "*end_to_end*"` to exclude the integration / end to end tests that require a [Cognito Setup](#integration-tests)
    - Use `python -m pytest tests` to run all tests
