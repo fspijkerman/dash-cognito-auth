@@ -49,6 +49,7 @@ def end_to_end_app_with_prefix() -> CognitoOAuth:
         dash_app,
         domain=os.environ["COGNITO_DOMAIN"],
         region=os.environ["COGNITO_REGION"],
+        logout_url="logout",
     )
     auth.app.server.config["COGNITO_OAUTH_CLIENT_ID"] = os.environ[
         "COGNITO_OAUTH_CLIENT_ID"
@@ -77,6 +78,8 @@ def test_end_to_end_with_path_prefix(end_to_end_app_with_prefix: CognitoOAuth):
     - Follow the redirect to the authorization endpoint
     - Follow the redirect to the app home page (logged in)
     - Check the /session-info endpoint to verify the correct user is logged in
+    - Call the /some/prefix/logout endpoint to end the current session
+    - Check a call to the homepage redirects us to the local cognito endpoint
     """
 
     # Arrange
@@ -129,3 +132,14 @@ def test_end_to_end_with_path_prefix(end_to_end_app_with_prefix: CognitoOAuth):
     # Verify that the logged in users' email matches the one from the env
     session_info_response = client.get("/some/prefix/session-info")
     assert session_info_response.json["email"] == os.environ["COGNITO_EMAIL"]
+
+    # Log out
+    logout_response = client.get("/some/prefix/logout")
+    assert logout_response.status_code == HTTPStatus.FOUND
+    assert "/logout" in logout_response.location
+
+    # Since we're not longer logged in, we should be redirected to the local
+    # Cognito endpoint.
+    homepage_response = client.get("/some/prefix/")
+    assert homepage_response.status_code == HTTPStatus.FOUND
+    assert homepage_response.location == "/some/prefix/login/cognito"

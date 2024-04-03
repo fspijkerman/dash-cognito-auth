@@ -1,10 +1,14 @@
+from urllib.parse import quote
+
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, TokenExpiredError
 from dash import Dash
 from flask import (
     redirect,
+    request,
     url_for,
     Response,
     session,
+    make_response,
 )
 from .cognito import make_cognito_blueprint, cognito
 
@@ -16,7 +20,14 @@ class CognitoOAuth(Auth):
     Wraps a Dash App and adds Cognito based OAuth2 authentication.
     """
 
-    def __init__(self, app: Dash, domain: str, region=None, additional_scopes=None):
+    def __init__(
+        self,
+        app: Dash,
+        domain: str,
+        region=None,
+        additional_scopes=None,
+        logout_url: str = None,
+    ):
         """
         Wrap a Dash App with Cognito authentication.
 
@@ -43,6 +54,12 @@ class CognitoOAuth(Auth):
             AWS region of the User Pool. Mandatory if domain is NOT a custom domain, by default None
         additional_scopes : Additional OAuth Scopes to request, optional
             By default openid, email, and profile are requested - default value: None
+        logout_url : str, optional
+            Add a URL to the app that logs out the user when accessed via HTTP GET.
+            The URL automatically respects path prefixes, i.e. if your app is hosted
+            at example.com/some/prefix and you set logout_url to "logout", the actual
+            URL will be example.com/some/prefix/logout. By default, no logout URL is
+            added and you will have to create your own.
         """
         super().__init__(app)
 
@@ -61,6 +78,34 @@ class CognitoOAuth(Auth):
         )
 
         app.server.register_blueprint(cognito_bp, url_prefix=f"{dash_base_path}/login")
+
+        if logout_url is not None:
+            logout_url = (
+                dash_base_path.removesuffix("/") + "/" + logout_url.removeprefix("/")
+            )
+
+            cognito_hostname = (
+                f"{domain}.auth.{region}.amazoncognito.com"
+                if region is not None
+                else domain
+            )
+
+            @app.server.route(logout_url)
+            def handle_logout():
+
+                post_logout_redirect = (
+                    request.host_url.removesuffix("/") + dash_base_path
+                )
+                cognito_logout_url = (
+                    f"https://{cognito_hostname}/logout?"
+                    + f"client_id={cognito_bp.client_id}&logout_uri={quote(post_logout_redirect)}"
+                )
+
+                response = make_response(redirect(cognito_logout_url))
+
+                # Invalidate the session cookie
+                response.set_cookie("session", "empty", max_age=-3600)
+                return response
 
     def is_authorized(self):
         if not cognito.authorized:
