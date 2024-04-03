@@ -45,9 +45,13 @@ class CognitoOAuth(Auth):
             By default openid, email, and profile are requested - default value: None
         """
         super().__init__(app)
+
+        dash_base_path = app.get_relative_path("")
+
         cognito_bp = make_cognito_blueprint(
             domain=domain,
             region=region,
+            redirect_url=dash_base_path,
             scope=[
                 "openid",
                 "email",
@@ -55,8 +59,6 @@ class CognitoOAuth(Auth):
             ]
             + (additional_scopes if additional_scopes else []),
         )
-
-        dash_base_path = app.get_relative_path("")
 
         app.server.register_blueprint(cognito_bp, url_prefix=f"{dash_base_path}/login")
 
