@@ -1,6 +1,6 @@
 # Dash Cognito Auth
 
-![Build + Test](https://github.com/fspijkerman/dash-cognito-auth/actions/workflows/build.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/dash-cognito-auth.svg)](https://badge.fury.io/py/dash-cognito-auth)
+![Build + Test](https://github.com/fspijkerman/dash-cognito-auth/actions/workflows/build.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/dash-cognito-auth.svg)](https://pypi.org/project/dash-cognito-auth/)
 
 Dash Cognito Auth is a simple library using Cognito OAuth to authenticate and
 view a [Dash](https://dash.plot.ly/) app.
