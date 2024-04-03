@@ -1,0 +1,80 @@
+# This setup is just intended for local development. If you want to use it
+# in production, you probably want to edit the callback and logout URLs to
+# include your hostnames. Additionally you'll want to check the Cognito
+# schema and potentially add more attributes.
+Parameters:
+  CognitoCustomDomainName:
+    Type: String
+    Description: Unique for your user pool
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UsernameAttributes:
+        - "email"
+      UsernameConfiguration:
+        CaseSensitive: false
+      Schema:
+        - Mutable: true
+          Name: "email"
+          Required: true
+        - Mutable: true
+          Name: "name"
+          Required: true
+      AutoVerifiedAttributes:
+        - "email"
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain:
+        Ref: CognitoCustomDomainName
+      UserPoolId:
+        Ref: UserPool
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      AllowedOAuthFlows:
+        - "implicit"
+        - "code"
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - "email"
+        - "openid"
+        - "profile"
+      CallbackURLs:
+        # For local development, the port varies sometimes
+        - "http://localhost:5000/login/cognito/authorized"
+        - "http://localhost:8000/login/cognito/authorized"
+        - "http://localhost:8050/login/cognito/authorized"
+        - "http://localhost:3000/login/cognito/authorized"
+
+        # For local end-to-end-tests
+        # - "http://localhost/login/cognito/authorized"
+        # - "http://localhost/some/prefix/login/cognito/authorized"
+      GenerateSecret: true
+      LogoutURLs:
+        # For local development, the port varies sometimes
+        - "http://localhost:5000/"
+        - "http://localhost:8000/"
+        - "http://localhost:8050/"
+        - "http://localhost:3000/"
+
+        # For local end-to-end-tests
+        # - "http://localhost/"
+        # - "http://localhost/some/prefix/"
+      SupportedIdentityProviders:
+        - "COGNITO"
+Outputs:
+  UserPoolId:
+    Description: Identifier of the User Pool
+    Value: !Ref UserPool
+  CognitoDomain:
+    Description: DNS Prefix of your Cognito Domain
+    Value: !Ref CognitoCustomDomainName
+  CognitoOAuthClientId:
+    Value: !Ref UserPoolClient
