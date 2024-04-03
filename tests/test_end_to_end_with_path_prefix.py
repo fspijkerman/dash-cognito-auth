@@ -2,6 +2,10 @@
 Integration test that authenticates against a real user pool.
 
 Naturally these are a bit sensitive to the way the Cognito UI is implemented.
+
+This is an almost exact copy of test_end_to_end.py with the main difference
+being that the Dash app isn't hosted at the root path (/) but under a prefix
+(/some/prefix).
 """
 
 # pylint: disable=W0621
@@ -24,7 +28,7 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 
 @pytest.fixture
-def end_to_end_app() -> CognitoOAuth:
+def end_to_end_app_with_prefix() -> CognitoOAuth:
     """
     Small dash app that's wrapped with the CognitoOAuth and offers a /session-info
     endpoint which returns the currently logged in user.
@@ -32,7 +36,7 @@ def end_to_end_app() -> CognitoOAuth:
 
     name = "end-to-end"
 
-    dash_app = Dash(name, server=Flask(name), url_base_pathname="/")
+    dash_app = Dash(name, server=Flask(name), url_base_pathname="/some/prefix/")
     dash_app.layout = html.H1("Hello World")
     dash_app.server.config.update(
         {
@@ -54,15 +58,18 @@ def end_to_end_app() -> CognitoOAuth:
         "COGNITO_OAUTH_CLIENT_SECRET"
     ]
 
-    @dash_app.server.route("/session-info")
+    @dash_app.server.route("/some/prefix/session-info")
     def session_info():
         return {"email": session["email"]}
 
     return auth
 
 
-def test_end_to_end(end_to_end_app: CognitoOAuth):
+def test_end_to_end_with_path_prefix(end_to_end_app_with_prefix: CognitoOAuth):
     """
+
+    End to end test with a Dash app that's hosted unter /some/prefix/
+
     - Request the local webapp
     - Follow the redirect to the local authorization endpoint
     - Follow the redirect to the Cognito UI
@@ -71,19 +78,19 @@ def test_end_to_end(end_to_end_app: CognitoOAuth):
     - Follow the redirect to the authorization endpoint
     - Follow the redirect to the app home page (logged in)
     - Check the /session-info endpoint to verify the correct user is logged in
-    - Call the /logout endpoint to end the current session
+    - Call the /some/prefix/logout endpoint to end the current session
     - Check a call to the homepage redirects us to the local cognito endpoint
     """
 
     # Arrange
-    server: Flask = end_to_end_app.app.server
+    server: Flask = end_to_end_app_with_prefix.app.server
     client = server.test_client()
     s = requests.session()
 
     # Act + Assert
 
     # We're not authenticated, we should be redirected to the local cognito endpoint.
-    redirect_to_local_cognito = client.get("/")
+    redirect_to_local_cognito = client.get("/some/prefix/")
 
     # Redirect to the Cognito Login UI
     redirect_to_cognito_ui = client.get(redirect_to_local_cognito.location)
@@ -118,20 +125,21 @@ def test_end_to_end(end_to_end_app: CognitoOAuth):
     post_cognito_auth_redirect = client.get(login_response.headers["location"])
 
     # We should now be redirected to the home page which will be displayed
+    assert post_cognito_auth_redirect.location == "/some/prefix/"
     home_page_with_auth = client.get(post_cognito_auth_redirect.location)
     assert home_page_with_auth.status_code == HTTPStatus.OK
 
     # Verify that the logged in users' email matches the one from the env
-    session_info_response = client.get("/session-info")
+    session_info_response = client.get("/some/prefix/session-info")
     assert session_info_response.json["email"] == os.environ["COGNITO_EMAIL"]
 
     # Log out
-    logout_response = client.get("/logout")
+    logout_response = client.get("/some/prefix/logout")
     assert logout_response.status_code == HTTPStatus.FOUND
     assert "/logout" in logout_response.location
 
     # Since we're not longer logged in, we should be redirected to the local
     # Cognito endpoint.
-    homepage_response = client.get("/")
+    homepage_response = client.get("/some/prefix/")
     assert homepage_response.status_code == HTTPStatus.FOUND
-    assert homepage_response.location == "/login/cognito"
+    assert homepage_response.location == "/some/prefix/login/cognito"
