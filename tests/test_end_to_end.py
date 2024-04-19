@@ -46,6 +46,7 @@ def end_to_end_app() -> CognitoOAuth:
         domain=os.environ["COGNITO_DOMAIN"],
         region=os.environ["COGNITO_REGION"],
         logout_url="logout",
+        user_info_to_session_attr_mapping={"email": "email", "sub": "user_id"},
     )
     auth.app.server.config["COGNITO_OAUTH_CLIENT_ID"] = os.environ[
         "COGNITO_OAUTH_CLIENT_ID"
@@ -56,7 +57,8 @@ def end_to_end_app() -> CognitoOAuth:
 
     @dash_app.server.route("/session-info")
     def session_info():
-        return {"email": session["email"]}
+        session_attributes = {"email", "user_id"}
+        return {attr: session[attr] for attr in session_attributes}
 
     return auth
 
@@ -124,6 +126,7 @@ def test_end_to_end(end_to_end_app: CognitoOAuth):
     # Verify that the logged in users' email matches the one from the env
     session_info_response = client.get("/session-info")
     assert session_info_response.json["email"] == os.environ["COGNITO_EMAIL"]
+    assert "user_id" in session_info_response.json
 
     # Log out
     logout_response = client.get("/logout")
