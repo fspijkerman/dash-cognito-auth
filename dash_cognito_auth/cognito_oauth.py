@@ -27,6 +27,7 @@ class CognitoOAuth(Auth):
         region=None,
         additional_scopes=None,
         logout_url: str = None,
+        user_info_to_session_attr_mapping: dict[str, str] = None,
     ):
         """
         Wrap a Dash App with Cognito authentication.
@@ -60,8 +61,23 @@ class CognitoOAuth(Auth):
             at example.com/some/prefix and you set logout_url to "logout", the actual
             URL will be example.com/some/prefix/logout. By default, no logout URL is
             added and you will have to create your own.
+        user_info_to_session_attr_mapping : dict[str, str], optional
+            Determines which information from the Cognito user info endpoint will be
+            placed into the session, by default the "email" attribute will be added
+            as "email" into the session. If you overwrite this with the following:
+
+                {"sub": "user_id", "email": "email", "username": "username"}
+
+            it will take the subscriber-ID (sub) and add it as user_id to the session
+            and additionally add the email and username.
         """
         super().__init__(app)
+
+        self.user_info_to_session_attr_mapping = (
+            {"email": "email"}
+            if user_info_to_session_attr_mapping is None
+            else user_info_to_session_attr_mapping
+        )
 
         dash_base_path = app.get_relative_path("")
 
@@ -116,7 +132,12 @@ class CognitoOAuth(Auth):
             resp = cognito.get("/oauth2/userInfo")
             assert resp.ok, resp.text
 
-            session["email"] = resp.json().get("email")
+            for (
+                user_info_attr,
+                session_attr,
+            ) in self.user_info_to_session_attr_mapping.items():
+                session[session_attr] = resp.json()[user_info_attr]
+
             return True
         except (InvalidGrantError, TokenExpiredError):
             return self.login_request()

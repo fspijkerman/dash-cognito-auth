@@ -11,6 +11,12 @@ for authentication.
 
 This Library is heavily inspired by [dash-google-oauth](https://github.com/lchapo/dash-google-auth) created by Lucas Chapin
 
+## Installation
+
+```bash
+$ pip install dash-cognito-auth
+```
+
 ## Basic Use
 
 Authentication can be added to your Dash application using the `CognitoOAuth`
